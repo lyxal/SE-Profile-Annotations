@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - "**.md"
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "**.md"
 
 jobs:
   build:
@@ -35,11 +39,15 @@ jobs:
             exit 0
           fi
 
-          # Get list of changed files between HEAD~1 and HEAD
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          # Get list of changed files in the push (using before and after SHAs for accuracy on multi-commit pushes)
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          else
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+          fi
 
-          # Filter out docs, build artifacts, and workflow/github config files
-          SOURCE_CHANGES=$(echo "$CHANGED_FILES" | grep -v -E '(README\.md|\.md$|dist/|build/|\.github/)' || true)
+          # Filter out build artifacts and github configs
+          SOURCE_CHANGES=$(echo "$CHANGED_FILES" | grep -v -E '(dist/|build/|\.github/)' || true)
           # Clean up empty lines
           SOURCE_CHANGES=$(echo "$SOURCE_CHANGES" | xargs)
 
@@ -73,5 +81,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
-          git commit -m "chore: build output" || echo "No changes to commit"
+          git commit -m "chore: build output [skip ci]" || echo "No changes to commit"
           git push
