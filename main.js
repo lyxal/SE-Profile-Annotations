@@ -44,10 +44,23 @@ import {
     return;
   }
 
+  // Check that acct, prov, and fkey are set.
+  // If not, open the chat page in a new tab to retrieve them, then return early so that the user can refresh after the values have been set.
+  const acct = GM_getValue("acct");
+  const prov = GM_getValue("prov");
+  const fkey = GM_getValue("fkey");
+
+  if (!acct || !prov || !fkey) {
+    alert(
+      "Required cookies or fkey for network-wide annotations not found. Opening chat page to retrieve them. Please refresh this page after the values have been set."
+    );
+    window.open("https://chat.stackexchange.com/rooms/163900", "_blank");
+    return;
+  }
+
   const [networkID, annotations] = await getNetworkAnnotations(); // Returns a messages dictionary
 
   console.log(`Loaded annotations for user ${networkID}:`, annotations);
-
 
   const annotationsDiv = createAnnotationsDiv();
 

@@ -26,6 +26,11 @@ export async function getNetworkAnnotations() {
   );
   GM_setValue("annotations", JSON.stringify(annotations));
 
-  const userAnnotations = annotations[networkID].messages;
+  if (!annotations[networkID]) {
+    return [networkID, {}];
+  }
+
+  const userAnnotations = annotations[networkID]?.messages;
+
   return [networkID, userAnnotations];
 }
