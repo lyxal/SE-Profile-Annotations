@@ -1,5 +1,11 @@
 import { retrieveCookies } from "./RetrieveCookies";
 import { annotationsForUser } from "./ChatSearch";
+import { getNetworkAnnotations, getNetworkId } from "./GetUserId";
+import {
+  createAnnotationItem,
+  createAnnotationsDiv,
+  createClearCacheButton,
+} from "./HTMLGen";
 (async function () {
   // Make sure that the userscript has a cached annotations store
   if (typeof GM_getValue("annotations") === "undefined") {
@@ -11,7 +17,7 @@ import { annotationsForUser } from "./ChatSearch";
 
   {
     userID: {
-      messages: {messageID: contents},
+      messages: {messageID: {moderator: name, text: text, timestamp: time}},
       cached: messageID
     }
   }
@@ -34,11 +40,17 @@ import { annotationsForUser } from "./ChatSearch";
     GM_setValue("acct", cookies.acct);
     GM_setValue("prov", cookies.prov);
     GM_setValue("fkey", fkey);
+    return;
   }
 
-  console.log(`acct: ${GM_getValue("acct")}`);
-  console.log(`prov: ${GM_getValue("prov")}`);
-  console.log(`fkey: ${GM_getValue("fkey")}`);
+  const annotations = await getNetworkAnnotations(); // Returns a messages dictionary
 
-  console.log(await annotationsForUser(67));
+  const annotationsDiv = createAnnotationsDiv();
+
+  // Create annotation items for each annotation and add to the annotationsDiv
+  Object.values(annotations).forEach((annotation) => {
+    createAnnotationItem(annotation, annotationsDiv);
+  });
+
+  createClearCacheButton();
 })();
