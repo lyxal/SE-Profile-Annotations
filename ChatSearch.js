@@ -1,4 +1,4 @@
-function gmFetch(url, options = {}) {
+export function gmFetch(url, options = {}) {
   return new Promise((resolve, reject) => {
     GM_xmlhttpRequest({
       method: options.method || "GET",
@@ -17,6 +17,23 @@ function gmFetch(url, options = {}) {
       },
     });
   });
+}
+
+export async function sendMessage(text, fkey) {
+  // Make a POST request
+  const url = "https://chat.stackexchange.com/chats/163900/messages/new";
+  const formData = new URLSearchParams();
+  formData.append("text", text);
+  formData.append("fkey", fkey);
+
+  const response = await gmFetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: formData,
+  });
+  return response.id;
 }
 
 function parseTimestamp(raw) {
@@ -87,25 +104,32 @@ export async function annotationsForUser(
   let parser = new DOMParser();
   let doc = parser.parseFromString(response.responseText, "text/html");
 
-  const messages = Array.from(doc.querySelectorAll(".message")).map((msg) => {
-    const id = msg.id.replace("message-", "");
-    const contentEl = msg.querySelector(".content");
-    const text = contentEl ? contentEl.textContent.trim() : "";
-    const rawTimestamp =
-      msg
-        .closest(".monologue")
-        ?.querySelector(".timestamp")
-        ?.textContent.trim() ?? "";
-    const timestamp = parseTimestamp(rawTimestamp);
-    const username =
-      msg
-        .closest(".monologue")
-        ?.querySelector(".username a")
-        ?.textContent.trim() ?? "";
-    const permalink = msg.querySelector("a[name]")?.getAttribute("href") ?? "";
+  const messages = Array.from(doc.querySelectorAll(".message")).flatMap(
+    (msg) => {
+      const id = Number.parseInt(msg.id.replace("message-", ""));
+      if (isNaN(id) || id <= cachedMessageID) {
+        // Filter out messages that are below the cached message ID right away to save memory and processing time
+        return [];
+      }
+      const contentEl = msg.querySelector(".content");
+      const text = contentEl ? contentEl.textContent.trim() : "";
+      const rawTimestamp =
+        msg
+          .closest(".monologue")
+          ?.querySelector(".timestamp")
+          ?.textContent.trim() ?? "";
+      const timestamp = parseTimestamp(rawTimestamp);
+      const username =
+        msg
+          .closest(".monologue")
+          ?.querySelector(".username a")
+          ?.textContent.trim() ?? "";
+      const permalink =
+        msg.querySelector("a[name]")?.getAttribute("href") ?? "";
 
-    return { id, username, timestamp, text, permalink };
-  });
+      return { id, username, timestamp, text, permalink };
+    }
+  );
 
   const hasMorePages = !!doc.querySelector(".page-numbers.next");
 
@@ -139,12 +163,8 @@ export async function annotationsForUser(
     `Fetched ${messages.length} messages for user ${networkID} on page ${page}.`
   ); // Debug log
 
+  messages.reverse(); // Reverse messages to process from oldest to newest
   for (const msg of messages) {
-    // Skip messages below the cached message ID
-    if (msg.id <= cachedMessageID) {
-      continue;
-    }
-
     const pattern = /^AN(\d+)(?:\s+(EDIT|UNDO)\((\d+)\))?:\s*(.+)$/;
 
     const parse = (str) => {
@@ -186,7 +206,7 @@ export async function annotationsForUser(
   // User is guaranteed to be in the DB because we add them when we see their first annotation message, and the first annotation message ID will always be greater than -1
 
   if (messages.length > 0) {
-    annotationDB[networkID].cached = messages[0].id;
+    annotationDB[networkID].cached = messages[messages.length - 1].id;
   }
 
   return annotationDB;

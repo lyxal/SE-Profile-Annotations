@@ -2,6 +2,7 @@ import { retrieveCookies } from "./RetrieveCookies";
 import { annotationsForUser } from "./ChatSearch";
 import { getNetworkAnnotations, getNetworkId } from "./GetUserId";
 import {
+  createAnnotationButton,
   createAnnotationItem,
   createAnnotationsDiv,
   createClearCacheButton,
@@ -43,14 +44,19 @@ import {
     return;
   }
 
-  const annotations = await getNetworkAnnotations(); // Returns a messages dictionary
+  const [networkID, annotations] = await getNetworkAnnotations(); // Returns a messages dictionary
+
+  console.log(`Loaded annotations for user ${networkID}:`, annotations);
 
   const annotationsDiv = createAnnotationsDiv();
 
   // Create annotation items for each annotation and add to the annotationsDiv
-  Object.values(annotations).forEach((annotation) => {
-    createAnnotationItem(annotation, annotationsDiv);
+  // Pass in both messageID and the annotation data for that message so that the edit and delete buttons can reference the message ID when sending commands to the chat
+  Object.entries(annotations).forEach(([messageID, annotation]) => {
+    createAnnotationItem(networkID, messageID, annotation, annotationsDiv);
   });
+
+  createAnnotationButton(networkID, annotationsDiv);
 
   createClearCacheButton();
 })();

@@ -27,5 +27,5 @@ export async function getNetworkAnnotations() {
   GM_setValue("annotations", JSON.stringify(annotations));
 
   const userAnnotations = annotations[networkID].messages;
-  return userAnnotations;
+  return [networkID, userAnnotations];
 }
