@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         SE Network-Wide Profile Annotations
-// @version      0.0.7
+// @version      0.0.8
 // @description  Network-wide profile annotations for the SE network
 // @author       lyxal
 // @match        *://*.stackexchange.com/users/*
@@ -739,6 +739,14 @@
   }
 
   (async function () {
+    const version = GM_info?.version ?? "";
+    const isBeta = /b\d+|beta/i.test(version);
+
+    if (!isBeta) {
+      // Silent termination in case this script is accidentally installed from the stable userscripts site, since the stable version of the script doesn't have any functionality and relies on the beta version to populate the cache.
+      return;
+    }
+
     // Make sure that the userscript has a cached annotations store
     if (typeof GM_getValue("annotations") === "undefined") {
       GM_setValue("annotations", JSON.stringify({}));
