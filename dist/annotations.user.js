@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         SE Network-Wide Profile Annotations
-// @version      0.0.4
+// @version      0.0.5
 // @description  Network-wide profile annotations for the SE network
 // @author       lyxal
 // @match        *://*.stackexchange.com/users/*
@@ -774,11 +774,6 @@
 
     console.log(`Loaded annotations for user ${networkID}:`, annotations);
 
-    // Don't do anything if there are no annotations, to avoid cluttering the UI with an empty annotations section
-    if (Object.keys(annotations).length === 0) {
-      console.log("No annotations found, skipping UI generation.");
-      return;
-    }
 
     const annotationsDiv = createAnnotationsDiv();
 
