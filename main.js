@@ -9,12 +9,13 @@ import {
 } from "./HTMLGen";
 (async function () {
   const version = GM_info?.version ?? "";
+  console.log(version);
   const isBeta = /b\d+|beta/i.test(version);
 
-  if (!isBeta) {
-    // Silent termination in case this script is accidentally installed from the stable userscripts site, since the stable version of the script doesn't have any functionality and relies on the beta version to populate the cache.
-    return;
-  }
+  //if (!isBeta) {
+  // Silent termination in case this script is accidentally installed from the stable userscripts site, since the stable version of the script doesn't have any functionality and relies on the beta version to populate the cache.
+  //  return;
+  //}
 
   // Make sure that the userscript has a cached annotations store
   if (typeof GM_getValue("annotations") === "undefined") {
