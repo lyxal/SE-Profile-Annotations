@@ -80,6 +80,5 @@ import {
   });
 
   createAnnotationButton(networkID, annotationsDiv);
-
   createClearCacheButton(networkID);
 })();
