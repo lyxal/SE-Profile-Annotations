@@ -27,14 +27,16 @@ jobs:
         run: |
           # Prevent infinite loop from the bot's own commits
           if [[ "$(git log -1 --pretty=%B)" == *"chore: build output"* ]]; then
-            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "needs-bump=false" >> $GITHUB_OUTPUT
+            echo "needs-rollup=false" >> $GITHUB_OUTPUT
             echo "Bot commit detected - skipping"
             exit 0
           fi
 
           # For the first commit, always build
           if ! git rev-parse HEAD~1 >/dev/null 2>&1; then
-            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "needs-bump=true" >> $GITHUB_OUTPUT
+            echo "needs-rollup=true" >> $GITHUB_OUTPUT
             echo "First commit - building"
             exit 0
           fi
@@ -46,17 +48,41 @@ jobs:
             CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} 2>/dev/null || git diff --name-only HEAD~1 HEAD)
           fi
 
-          # Filter out build artifacts and github configs
-          SOURCE_CHANGES=$(echo "$CHANGED_FILES" | grep -v -E '(dist/|build/|\.github/)' || true)
-          # Clean up empty lines
-          SOURCE_CHANGES=$(echo "$SOURCE_CHANGES" | xargs)
-
-          if [ -n "$SOURCE_CHANGES" ]; then
-            echo "has-changes=true" >> $GITHUB_OUTPUT
-            echo "Source code changes detected: $SOURCE_CHANGES"
+          # 1. Did header.txt change manually?
+          if echo "$CHANGED_FILES" | grep -q 'header\.txt'; then
+            HEADER_CHANGED="true"
+            echo "header.txt was edited manually"
           else
-            echo "has-changes=false" >> $GITHUB_OUTPUT
-            echo "No source code changes (only docs/build/github files changed)"
+            HEADER_CHANGED="false"
+          fi
+
+          # 2. Did other source code change? (Exclude build artifacts, github configs, AND header.txt)
+          CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -v -E '(dist/|build/|\.github/|header\.txt)' || true)
+          # Clean up empty lines
+          CODE_CHANGES=$(echo "$CODE_CHANGES" | xargs)
+
+          if [ -n "$CODE_CHANGES" ]; then
+            CODE_CHANGED="true"
+            echo "Source code changes detected: $CODE_CHANGES"
+          else
+            CODE_CHANGED="false"
+          fi
+
+          # 3. Determine outputs
+          # Needs rollup if EITHER header OR code changed
+          if [ "$CODE_CHANGED" == "true" ] || [ "$HEADER_CHANGED" == "true" ]; then
+            echo "needs-rollup=true" >> $GITHUB_OUTPUT
+          else
+            echo "needs-rollup=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Needs bump ONLY if code changed AND header did NOT change
+          if [ "$CODE_CHANGED" == "true" ] && [ "$HEADER_CHANGED" == "false" ]; then
+            echo "needs-bump=true" >> $GITHUB_OUTPUT
+            echo "Will bump version automatically"
+          else
+            echo "needs-bump=false" >> $GITHUB_OUTPUT
+            echo "Skipping automatic version bump (either no code changes or manual header edit)"
           fi
 
       - name: Setup Node.js
@@ -68,15 +94,15 @@ jobs:
         run: npm install
 
       - name: Bump version
-        if: steps.code-check.outputs.has-changes == 'true'
+        if: steps.code-check.outputs.needs-bump == 'true'
         run: node bump-version.js
 
       - name: Run rollup
-        if: steps.code-check.outputs.has-changes == 'true'
+        if: steps.code-check.outputs.needs-rollup == 'true'
         run: npx rollup -c
 
       - name: Commit and push changes
-        if: steps.code-check.outputs.has-changes == 'true'
+        if: steps.code-check.outputs.needs-rollup == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
