@@ -1,0 +1,24 @@
+// ==UserScript==
+// @name         Annotations
+// @version      0.0.0
+// @description  Profile annotations for the SE network
+// @author       lyxal
+// @match        *://*.stackexchange.com/users/*
+// @match        *://*.stackoverflow.com/users/*
+// @match        *://stackoverflow.com/users/*
+// @match        *://superuser.com/users/*
+// @match        *://serverfault.com/users/*
+// @match        *://askubuntu.com/users/*
+// @match        *://stackapps.com/users/*
+// @match        *://mathoverflow.net/users/*
+// @match        https://chat.stackexchange.com/rooms/163900/*
+// @exclude      *://stackexchange.com/users/*
+// @exclude      *://chat.stackexchange.com/users/*
+// @exclude      *://chat.stackoverflow.com/users/*
+// @exclude      *://chat.meta.stackexchange.com/users/*
+// @grant        GM_xmlhttpRequest
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_cookie
+// ==/UserScript==
+/* globals $:readonly, StackExchange:readonly */
