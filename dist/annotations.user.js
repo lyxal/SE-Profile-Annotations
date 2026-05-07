@@ -70,7 +70,10 @@
       },
       body: formData,
     });
-    return response.id;
+
+    // Extract the message ID from the response responseText field - eg '{"id":x,"time":y}'
+    const messageID = JSON.parse(response.responseText)?.id;
+    return messageID;
   }
 
   function parseTimestamp(raw) {
@@ -397,6 +400,21 @@
         saveButton.style.cssText = annotationStyles.button + "margin-top: 0.5em;";
       });
 
+      const cancelEditButton = document.createElement("button");
+      cancelEditButton.textContent = "Cancel";
+      cancelEditButton.style.cssText =
+        annotationStyles.button + "margin-top: 0.5em; margin-left: 0.5em;";
+      cancelEditButton.addEventListener("mouseenter", () => {
+        cancelEditButton.style.cssText =
+          annotationStyles.button +
+          annotationStyles.buttonHover +
+          "margin-top: 0.5em; margin-left: 0.5em;";
+      });
+      cancelEditButton.addEventListener("mouseleave", () => {
+        cancelEditButton.style.cssText =
+          annotationStyles.button + "margin-top: 0.5em; margin-left: 0.5em;";
+      });
+
       saveButton.addEventListener("click", () => {
         // Send an edit command to the chat with the new annotation text
         const command = `AN${networkID} EDIT(${messageID}): ${textarea.value}`;
@@ -407,13 +425,28 @@
         content.textContent = annotation.text;
         textarea.remove();
         saveButton.remove();
+        cancelEditButton.remove();
         buttonContainer.style.display = "flex";
       });
+
+      cancelEditButton.addEventListener("click", () => {
+        // Cancel editing, remove textarea, saveButton, and cancelEditButton
+        textarea.remove();
+        saveButton.remove();
+        cancelEditButton.remove();
+        buttonContainer.style.display = "flex";
+      });
+
+      // Create a button group container for save and cancel buttons
+      const editButtonContainer = document.createElement("div");
+      editButtonContainer.style.cssText = annotationStyles.buttonContainer;
+      editButtonContainer.appendChild(saveButton);
+      editButtonContainer.appendChild(cancelEditButton);
 
       // Hide buttons and show textarea
       buttonContainer.style.display = "none";
       item.appendChild(textarea);
-      item.appendChild(saveButton);
+      item.appendChild(editButtonContainer);
     });
 
     const deleteButton = document.createElement("button");
@@ -452,7 +485,7 @@
     buttonContainer.appendChild(deleteButton);
   }
 
-  function createClearCacheButton() {
+  function createClearCacheButton(networkID) {
     const userIDRegex = /\/users\/(\d+)\//g.exec(document.location);
     if (!userIDRegex) return;
 
@@ -461,7 +494,7 @@
     if (!moderatorLinkElement.length) return;
 
     const button = document.createElement("button");
-    button.textContent = "Clear Cache";
+    button.textContent = "Clear Annotation Cache for This User";
     button.style.cssText = `
     padding: 0.4em 0.8em;
     border: 1px solid #d0d0d0;
@@ -483,10 +516,22 @@
     });
     button.addEventListener("click", (e) => {
       e.preventDefault();
-      GM_setValue("annotations", JSON.stringify({}));
-      alert(
-        "Annotations cache cleared. Please refresh the page to see the effect."
-      );
+      if (
+        confirm(
+          "Are you sure you want to clear the annotation cache for this user?"
+        )
+      ) {
+        const annotations = JSON.parse(GM_getValue("annotations"));
+        if (annotations[networkID]) {
+          delete annotations[networkID];
+          GM_setValue("annotations", JSON.stringify(annotations));
+          alert(
+            "Annotation cache cleared for this user. Please refresh the page to see the changes."
+          );
+        } else {
+          alert("No annotation cache found for this user.");
+        }
+      }
     });
 
     moderatorLinkElement.after(button);
@@ -607,14 +652,45 @@
         submitButton.style.borderColor = "#d0d0d0";
       });
 
+      const cancelButton = document.createElement("button");
+      cancelButton.textContent = "Cancel";
+      cancelButton.style.cssText = `
+      padding: 0.4em 0.8em;
+      border: 1px solid #d0d0d0;
+      background-color: #fff;
+      color: #333;
+      border-radius: 2px;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin-top: 0.5em;
+      margin-left: 0.5em;
+      transition: all 0.2s ease;
+    `;
+      cancelButton.addEventListener("mouseenter", () => {
+        cancelButton.style.backgroundColor = "#f0f0f0";
+        cancelButton.style.borderColor = "#999";
+      });
+      cancelButton.addEventListener("mouseleave", () => {
+        cancelButton.style.backgroundColor = "#fff";
+        cancelButton.style.borderColor = "#d0d0d0";
+      });
+      cancelButton.addEventListener("click", () => {
+        // Remove the textarea, submit button, and cancel button
+        textarea.remove();
+        submitButton.remove();
+        cancelButton.remove();
+        button.style.display = "block";
+      });
+
       submitButton.addEventListener("click", async function () {
         if (textarea.value.trim()) {
           const command = `AN${networkID}: ${textarea.value}`;
-          const newID = sendMessage(command, GM_getValue("fkey"));
+          const newID = await sendMessage(command, GM_getValue("fkey"));
 
-          // Remove the textarea and submit button after submitting the annotation
+          // Remove the textarea, submit button, and cancel button after submitting the annotation
           textarea.remove();
           submitButton.remove();
+          cancelButton.remove();
           button.style.display = "block";
 
           // Add the new annotation to the annotationsDiv immediately
@@ -627,9 +703,18 @@
         }
       });
 
+      const buttonContainer = document.createElement("div");
+      buttonContainer.style.cssText = `
+      display: flex;
+      gap: 0.5em;
+      margin-top: 0.5em;
+    `;
+      buttonContainer.appendChild(submitButton);
+      buttonContainer.appendChild(cancelButton);
+
       const container = annotationsDiv._contentContainer || annotationsDiv;
       container.appendChild(textarea);
-      container.appendChild(submitButton);
+      container.appendChild(buttonContainer);
       button.style.display = "none";
     });
 
@@ -688,6 +773,12 @@
 
     console.log(`Loaded annotations for user ${networkID}:`, annotations);
 
+    // Don't do anything if there are no annotations, to avoid cluttering the UI with an empty annotations section
+    if (Object.keys(annotations).length === 0) {
+      console.log("No annotations found, skipping UI generation.");
+      return;
+    }
+
     const annotationsDiv = createAnnotationsDiv();
 
     // Create annotation items for each annotation and add to the annotationsDiv
@@ -698,7 +789,7 @@
 
     createAnnotationButton(networkID, annotationsDiv);
 
-    createClearCacheButton();
+    createClearCacheButton(networkID);
   })();
 
 })();

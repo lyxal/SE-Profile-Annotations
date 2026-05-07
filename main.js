@@ -48,6 +48,12 @@ import {
 
   console.log(`Loaded annotations for user ${networkID}:`, annotations);
 
+  // Don't do anything if there are no annotations, to avoid cluttering the UI with an empty annotations section
+  if (Object.keys(annotations).length === 0) {
+    console.log("No annotations found, skipping UI generation.");
+    return;
+  }
+
   const annotationsDiv = createAnnotationsDiv();
 
   // Create annotation items for each annotation and add to the annotationsDiv
@@ -58,5 +64,5 @@ import {
 
   createAnnotationButton(networkID, annotationsDiv);
 
-  createClearCacheButton();
+  createClearCacheButton(networkID);
 })();

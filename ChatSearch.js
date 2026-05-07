@@ -33,7 +33,10 @@ export async function sendMessage(text, fkey) {
     },
     body: formData,
   });
-  return response.id;
+
+  // Extract the message ID from the response responseText field - eg '{"id":x,"time":y}'
+  const messageID = JSON.parse(response.responseText)?.id;
+  return messageID;
 }
 
 function parseTimestamp(raw) {
