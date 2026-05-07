@@ -2,11 +2,14 @@
 
 Ever noticed that SE doesn't have a way for moderators to leave notes on user profiles? Well, now there is a way! (obviously not official by any means.)
 
-> [!NOTE] You will obviously need to be a moderator on at least one SE site to use this script. That might have something to do with the fact it relies on interacting with a private moderator chatroom.
+> [!NOTE]
+> You will obviously need to be a moderator on at least one SE site to use this script. That might have something to do with the fact it relies on interacting with a private moderator chatroom.
 
-> [!NOTE] This script has the ability to send chat messages using your account. It will only do so in the annotations chatroom, and only when interacting with annotations. If you have any concerns about this, feel free to review the source code to verify that it is not doing anything nefarious.
+> [!NOTE]
+> This script has the ability to send chat messages using your account. It will only do so in the annotations chatroom, and only when interacting with annotations. If you have any concerns about this, feel free to review the source code to verify that it is not doing anything nefarious.
 
-> [!WARNING] This script is not (yet?) endorsed by SE, and is not affiliated with SE in any way. Use at your own risk. I don't think it should trip any API rate limits, especially given there's a bit of caching in place.
+> [!WARNING]
+> This script is not (yet?) endorsed by SE, and is not affiliated with SE in any way. Use at your own risk. I don't think it should trip any API rate limits, especially given there's a bit of caching in place.
 
 ## Installation
 
