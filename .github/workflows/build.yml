@@ -21,6 +21,13 @@ jobs:
       - name: Check for source code changes
         id: code-check
         run: |
+          # Prevent infinite loop from the bot's own commits
+          if [[ "$(git log -1 --pretty=%B)" == *"chore: build output"* ]]; then
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "Bot commit detected - skipping"
+            exit 0
+          fi
+
           # For the first commit, always build
           if ! git rev-parse HEAD~1 >/dev/null 2>&1; then
             echo "has-changes=true" >> $GITHUB_OUTPUT
@@ -31,15 +38,17 @@ jobs:
           # Get list of changed files between HEAD~1 and HEAD
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
 
-          # Filter to exclude only docs (README and .md files) and build artifacts
-          SOURCE_CHANGES=$(echo "$CHANGED_FILES" | grep -v -E '(README\.md|\.md$|dist/|build/)' || true)
+          # Filter out docs, build artifacts, and workflow/github config files
+          SOURCE_CHANGES=$(echo "$CHANGED_FILES" | grep -v -E '(README\.md|\.md$|dist/|build/|\.github/)' || true)
+          # Clean up empty lines
+          SOURCE_CHANGES=$(echo "$SOURCE_CHANGES" | xargs)
 
           if [ -n "$SOURCE_CHANGES" ]; then
             echo "has-changes=true" >> $GITHUB_OUTPUT
             echo "Source code changes detected: $SOURCE_CHANGES"
           else
             echo "has-changes=false" >> $GITHUB_OUTPUT
-            echo "No source code changes (only docs/build files changed)"
+            echo "No source code changes (only docs/build/github files changed)"
           fi
 
       - name: Setup Node.js
