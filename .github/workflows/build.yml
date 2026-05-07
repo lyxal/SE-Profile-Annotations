@@ -21,22 +21,16 @@ jobs:
       - name: Check for code changes
         id: code-check
         run: |
-          # Check if this is the first commit
-          if ! git rev-parse HEAD~1 2>/dev/null; then
-            echo "has-changes=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Get all changed files
-          ALL_CHANGED=$(git diff HEAD~1..HEAD --name-only)
-
-          # Filter out documentation and build artifacts
-          CHANGED_FILES=$(echo "$ALL_CHANGED" | grep -v -E '(package-lock.json|dist/|build/|header.txt|README.md)$')
+          # Compare current HEAD against main branch to detect actual code changes
+          # This avoids false positives from the auto-commit cycle
+          CHANGED_FILES=$(git diff origin/main...HEAD --name-only 2>/dev/null | grep -v -E '(package-lock.json|dist/|build/|header.txt|README.md)$' || echo "")
 
           if [ -n "$CHANGED_FILES" ]; then
             echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "Changed source files detected: $CHANGED_FILES"
           else
             echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "No source code changes detected"
           fi
 
       - name: Setup Node.js
