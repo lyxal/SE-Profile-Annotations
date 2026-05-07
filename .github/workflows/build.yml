@@ -15,24 +15,28 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check for source code changes
         id: code-check
         run: |
-          # Get list of changed files in this push
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            CHANGED_FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || echo "")
-          else
-            # For push events, compare with the previous commit
-            CHANGED_FILES=$(git diff --name-only HEAD~1 2>/dev/null || echo "")
+          # For the first commit, always build
+          if ! git rev-parse HEAD~1 >/dev/null 2>&1; then
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "First commit - building"
+            exit 0
           fi
 
-          # Filter to only source code files (exclude docs, build artifacts, lock files)
-          SOURCE_CHANGES=$(echo "$CHANGED_FILES" | grep -v -E '(README\.md|package-lock\.json|\.md$|dist/|build/|header\.txt)' || echo "")
+          # Get list of changed files between HEAD~1 and HEAD
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+
+          # Filter to exclude only docs (README and .md files) and build artifacts
+          SOURCE_CHANGES=$(echo "$CHANGED_FILES" | grep -v -E '(README\.md|\.md$|dist/|build/)' || true)
 
           if [ -n "$SOURCE_CHANGES" ]; then
             echo "has-changes=true" >> $GITHUB_OUTPUT
-            echo "Source code changes detected"
+            echo "Source code changes detected: $SOURCE_CHANGES"
           else
             echo "has-changes=false" >> $GITHUB_OUTPUT
             echo "No source code changes (only docs/build files changed)"
