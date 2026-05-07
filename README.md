@@ -22,7 +22,7 @@ Ever noticed that SE doesn't have a way for moderators to leave notes on user pr
 
 Here is what annotations looks like on a user profile:
 
-<img src="sample1.png" alt="Sample annotation on a user profile" width="90%">
+<img src="Sample1.png" alt="Sample annotation on a user profile" width="90%">
 
 ## Contributing
 
