@@ -21,9 +21,19 @@ jobs:
       - name: Check for code changes
         id: code-check
         run: |
-          # Get the list of changed files, excluding version/build artifacts/docs
-          CHANGED_FILES=$(git diff HEAD~1..HEAD --name-only 2>/dev/null | grep -v -E '(package-lock.json|dist/|build/|header.txt|README.md)$' || echo "")
-          if [ -n "$CHANGED_FILES" ] || [ "$GITHUB_REF" == "refs/heads/main" ] && [ -z "$(git rev-parse HEAD~1 2>/dev/null)" ]; then
+          # Check if this is the first commit
+          if ! git rev-parse HEAD~1 2>/dev/null; then
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get all changed files
+          ALL_CHANGED=$(git diff HEAD~1..HEAD --name-only)
+
+          # Filter out documentation and build artifacts
+          CHANGED_FILES=$(echo "$ALL_CHANGED" | grep -v -E '(package-lock.json|dist/|build/|header.txt|README.md)$')
+
+          if [ -n "$CHANGED_FILES" ]; then
             echo "has-changes=true" >> $GITHUB_OUTPUT
           else
             echo "has-changes=false" >> $GITHUB_OUTPUT
