@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Annotations
-// @version      0.0.0
-// @description  Profile annotations for the SE network
+// @name         SE Network-Wide Profile Annotations
+// @version      0.0.1
+// @description  Network-wide profile annotations for the SE network
 // @author       lyxal
 // @match        *://*.stackexchange.com/users/*
 // @match        *://*.stackoverflow.com/users/*
@@ -20,6 +20,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_cookie
+// @updateURL    https://github.com/lyxal/SE-Profile-Annotations/raw/refs/heads/main/dist/annotations.user.js
 // ==/UserScript==
 /* globals $:readonly, StackExchange:readonly */
 
