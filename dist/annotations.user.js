@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         SE Network-Wide Profile Annotations
-// @version      0.0.8
+// @version      0.0.9
 // @description  Network-wide profile annotations for the SE network
 // @author       lyxal
 // @match        *://*.stackexchange.com/users/*
@@ -790,8 +790,9 @@
     const fkey = GM_getValue("fkey");
 
     if (!acct || !prov || !fkey) {
+      // Do the installation process for the user automatically.
       alert(
-        "Required cookies or fkey for network-wide annotations not found. Opening chat page to retrieve them. Please refresh this page after the values have been set."
+        "[NETWORK WIDE ANNOTATIONS] Setting things up - opening the chat page to retrieve the required cookies and fkey for network-wide annotations. Once done, please refresh this page."
       );
       window.open("https://chat.stackexchange.com/rooms/163900", "_blank");
       return;
