@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         SE Network-Wide Profile Annotations
-// @version      0.0.11
+// @version      1.0.0
 // @description  Network-wide profile annotations for the SE network
 // @author       lyxal
 // @match        *://*.stackexchange.com/users/*
