@@ -15,6 +15,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for code changes
+        id: code-check
+        run: |
+          # Get the list of changed files, excluding version/build artifacts/docs
+          CHANGED_FILES=$(git diff HEAD~1..HEAD --name-only 2>/dev/null | grep -v -E '(package-lock.json|dist/|build/|header.txt|README.md)$' || echo "")
+          if [ -n "$CHANGED_FILES" ] || [ "$GITHUB_REF" == "refs/heads/main" ] && [ -z "$(git rev-parse HEAD~1 2>/dev/null)" ]; then
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -25,12 +38,15 @@ jobs:
         run: npm install
 
       - name: Bump version
+        if: steps.code-check.outputs.has-changes == 'true'
         run: node bump-version.js
 
       - name: Run rollup
+        if: steps.code-check.outputs.has-changes == 'true'
         run: npx rollup -c
 
       - name: Commit and push changes
+        if: steps.code-check.outputs.has-changes == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
