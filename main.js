@@ -48,11 +48,6 @@ import {
 
   console.log(`Loaded annotations for user ${networkID}:`, annotations);
 
-  // Don't do anything if there are no annotations, to avoid cluttering the UI with an empty annotations section
-  if (Object.keys(annotations).length === 0) {
-    console.log("No annotations found, skipping UI generation.");
-    return;
-  }
 
   const annotationsDiv = createAnnotationsDiv();
 
