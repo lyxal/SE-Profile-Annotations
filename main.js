@@ -59,6 +59,7 @@ import {
   const fkey = GM_getValue("fkey");
 
   if (!acct || !prov || !fkey) {
+    // Do the installation process for the user automatically.
     alert(
       "[NETWORK WIDE ANNOTATIONS] Setting things up - opening the chat page to retrieve the required cookies and fkey for network-wide annotations. Once done, please refresh this page."
     );
