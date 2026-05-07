@@ -60,7 +60,7 @@ import {
 
   if (!acct || !prov || !fkey) {
     alert(
-      "Required cookies or fkey for network-wide annotations not found. Opening chat page to retrieve them. Please refresh this page after the values have been set."
+      "[NETWORK WIDE ANNOTATIONS] Setting things up - opening the chat page to retrieve the required cookies and fkey for network-wide annotations. Once done, please refresh this page."
     );
     window.open("https://chat.stackexchange.com/rooms/163900", "_blank");
     return;
