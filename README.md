@@ -31,3 +31,7 @@ If you would like to contribute to this project, the build process is very simpl
 1. Make sure you have Node.js installed and `npm` available in your terminal.
 2. Run `npm install` to install the dependencies.
 3. Run `npx rollup -c` to build the userscript. The built script will be located at `dist/annotations.user.js`.
+
+## Credits
+
+- Thanks to @CPlus for the idea to (ab)use chat as a database.
