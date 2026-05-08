@@ -15,8 +15,10 @@ Ever noticed that SE doesn't have a way for moderators to leave notes on user pr
 
 1. Install the [Tampermonkey BETA](https://www.tampermonkey.net/index.php?locale=en) extension for your browser. Note that the BETA version is specifically required for this script to work. The regular version of Tampermonkey does not allow `GM.cookie` to read `HTTPOnly` cookies.
 
+If you REALLY wish to use the normal version of Tampermonkey, read the "Normal Tampermonkey Instructions" below. However, I highly recommend using the BETA version if possible, for reasons mentioned in the installation instructions.
+
 > [!WARNING]
-> It is VERY important you use Tampermonkey BETA. Normal Tampermonkey will NOT work. Also, make sure you do not accidentally install the userscript to normal Tampermonkey. Otherwise you'll be met with never-ending `alert`s.
+> Using Tampermonkey BETA is **STRONGLY** recommended. Normal Tampermonkey has some limitations. Also, make sure you do not accidentally install the userscript to normal Tampermonkey. Otherwise you'll be met with never-ending `alert`s.
   
 2. Click [here](https://github.com/lyxal/SE-Profile-Annotations/raw/refs/heads/main/dist/annotations.user.js) to install the userscript. You should see a popup from Tampermonkey asking if you want to install the script. Click "Install".
 3. Head on over to the [Network Wide Profile Annotations chatroom](https://chat.stackexchange.com/rooms/163900/network-wide-profile-annotations) (mod-only link). This is necessary for the script to read the `acct` and `prov` cookies. These cookies allow for programmatic access to searching a private room.
@@ -25,6 +27,15 @@ Alternatively, visit any user profile page, and the script will give you an aler
 
 4. That's it! If a user has any network-wide annotations, they will show up on their profile page on any SE site.
 
+### Normal Tampermonkey Instructions
+
+Normal TamperMonkey is unable to retrieve the cookies needed to power annotation retrieval. This is because they are (sensibly) marked as `HTTPOnly` - normal Tampermonkey `GM.cookie.list` cannot read these cookies. As a workaround, the script will fetch the `prov` and `acct` cookies for [the dedicated annotation profile viewer account](https://codegolf.stackexchange.com/users/133667/profile-annotations-viewer) from the Annotations Chatroom.
+
+Although there probably shouldn't be any API rate limiting, there is always a possibility of everyone making chat search requests from the same account could caus some issues. Therefore, only use normal Tampermonkey if you REALLY don't want to use the BETA version. Additionally, the cookies for the account will eventually expire, meaning I will need to update the cookies periodically. This means that there is a chance that the script could stop working until I update the cookies. Again, this is another reason why using the BETA version of Tampermonkey is recommended, as it does not have this issue (it uses your own cookies).
+
+Regardless of which version of Tampermonkey you use, it will always use your fkey for any actions that require it (adding/editing/deleting annotations). Thankfully the fkey is not a cookie, but instead a value stored in the HTML of SE pages, so both versions of Tampermonkey can access it without issue.
+
+Installation is otherwise the same for both versions of Tampermonkey - install the userscript, then visit the annotations chatroom to set the necessary cookies.
 ## Usage
 
 Here is what annotations looks like on a user profile:
