@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         SE Network-Wide Profile Annotations
-// @version      1.0.1
+// @version      1.0.2
 // @description  Network-wide profile annotations for the SE network
 // @author       lyxal
 // @match        *://*.stackexchange.com/users/*
@@ -739,14 +739,6 @@
   }
 
   (async function () {
-    const version = GM_info?.version ?? "";
-    console.log(version);
-
-    //if (!isBeta) {
-    // Silent termination in case this script is accidentally installed from the stable userscripts site, since the stable version of the script doesn't have any functionality and relies on the beta version to populate the cache.
-    //  return;
-    //}
-
     // Make sure that the userscript has a cached annotations store
     if (typeof GM_getValue("annotations") === "undefined") {
       GM_setValue("annotations", JSON.stringify({}));
@@ -772,14 +764,53 @@
       let cookies = await retrieveCookies();
       let fkey = document.querySelector('input[name="fkey"]')?.value;
 
+      if (!cookies.acct || !cookies.prov) {
+        // Most likely using non-beta tampermonkey.
+        // Retrieve the default cookies from the annotation profile account
+
+        // Very hacky.
+        const [acctCookie, provCookie] = document
+          .getElementById("roomdesc")
+          .textContent.split("|")[1]
+          .split("!");
+        cookies = { acct: acctCookie, prov: provCookie };
+      }
+
       if (!cookies.acct || !cookies.prov || !fkey) {
-        console.error("Required cookies or fkey not found. Aborting.");
+        alert(
+          "[NETWORK WIDE ANNOTATIONS] Failed to retrieve necessary cookies and fkey. Please make sure you are logged in to chat and have the annotation profile set up correctly."
+        );
         return;
       }
 
       GM_setValue("acct", cookies.acct);
       GM_setValue("prov", cookies.prov);
       GM_setValue("fkey", fkey);
+
+      const toast = document.createElement("div");
+      toast.textContent =
+        "Network Wide Annotations: Cookies set successfully! You can now close this tab.";
+      Object.assign(toast.style, {
+        position: "fixed",
+        bottom: "20px",
+        right: "20px",
+        backgroundColor: "#28a745",
+        color: "white",
+        padding: "16px",
+        borderRadius: "8px",
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+        zIndex: "10000",
+        fontFamily: "system-ui, sans-serif",
+        transition: "opacity 0.5s",
+      });
+
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 500);
+      }, 4000);
+
       return;
     }
 
